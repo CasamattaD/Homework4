@@ -11,29 +11,34 @@ private:
     vector<int>* adj;
 
 public:
+    // Constructor
     Digraph(int V) {
         this->V = V;
         adj = new vector<int>[V];
     }
 
+    // Destructor
     ~Digraph() {
         delete[] adj;
     }
 
+    // Add edge to digraph
     void addEdge(int v, int w) {
         adj[v].push_back(w);
     }
 
+    // Remove edge from Digraph
     void removeEdge(int v, int w) {
         adj[v].erase(remove(adj[v].begin(), adj[v].end(), w), adj[v].end());
     }
 
+    // Check if graph has any cycles
     bool isAcyclic() {
-        vector<bool> visited(V, false);
+        vector<bool> prev(V, false);
         vector<bool> recStack(V, false);
 
         for (int i = 0; i < V; i++) {
-            if (!visited[i] && isAcyclicUtil(i, visited, recStack)) {
+            if (!prev[i] && isAcyclicUtil(i, prev, recStack)) {
                 return false;
             }
         }
@@ -41,12 +46,13 @@ public:
         return true;
     }
 
-    bool isAcyclicUtil(int v, vector<bool>& visited, vector<bool>& recStack) {
-        visited[v] = true;
+    // Recursive check if graph has any cycles
+    bool isAcyclicUtil(int v, vector<bool>& prev, vector<bool>& recStack) {
+        prev[v] = true;
         recStack[v] = true;
 
         for (auto i = adj[v].begin(); i != adj[v].end(); ++i) {
-            if (!visited[*i] && isAcyclicUtil(*i, visited, recStack)) {
+            if (!prev[*i] && isAcyclicUtil(*i, prev, recStack)) {
                 return true;
             }
             else if (recStack[*i]) {
@@ -59,28 +65,30 @@ public:
         return false;
     }
 
+    // Sort the tasks according to order relations
     void topologicalSort(vector<string> tasks) {
         stack<int> Stack;
-        vector<bool> visited(V, false);
+        vector<bool> prev(V, false);
 
         for (int i = 0; i < V; i++) {
-            if (!visited[i]) {
-                topologicalSortUtil(i, visited, Stack);
+            if (!prev[i]) {
+                topologicalSortUtil(i, prev, Stack);
             }
         }
 
         while (!Stack.empty()) {
-            cout << Stack.top() << " " << tasks[Stack.top()] << endl;
+            cout << Stack.top() + 1 << " " << tasks[Stack.top()] << endl;
             Stack.pop();
         }
     }
 
-    void topologicalSortUtil(int v, vector<bool>& visited, stack<int>& Stack) {
-        visited[v] = true;
+    // Recursive function to sort tasks according to order relations
+    void topologicalSortUtil(int v, vector<bool>& prev, stack<int>& Stack) {
+        prev[v] = true;
 
         for (auto i = adj[v].begin(); i != adj[v].end(); ++i) {
-            if (!visited[*i]) {
-                topologicalSortUtil(*i, visited, Stack);
+            if (!prev[*i]) {
+                topologicalSortUtil(*i, prev, Stack);
             }
         }
 
@@ -112,7 +120,7 @@ int main() {
     Digraph graph(numTasks);
     cout << "Specify Order Relations: Press Enter after each task or ENTER '0' to complete order relations." << endl;
 
-    // Print out the tasks in the array
+    // Get order relations and add to graph accordingly
     while (numRelation < 100){
         int taskNum = 0;
         int precTask = 0;
@@ -125,14 +133,12 @@ int main() {
         cout << "Enter Task " << taskNum << " must precede: ";
         cin >> precTask;
 
-        graph.addEdge(taskNum, precTask);
+        graph.addEdge(taskNum - 1, precTask - 1);
 
         numRelation++;
     }
 
-
     graph.topologicalSort(tasks);
-
 
     return 0;
 }
